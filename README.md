@@ -5,7 +5,10 @@ Translate text to image in Keras using GAN and Word2Vec as well as recurrent neu
 
 # Usage
 
-### Deep Convolution GAN
+The sample codes below only generate very small images, but the image size can be increased if you have sufficient
+memory 
+
+### Text-to-Image using GloVe and Deep Convolution GAN
 
 Below is the [sample codes](demo/dcgan_train.py) to train the DCGan on a set of pokemon samples of pair (image, text)
 
