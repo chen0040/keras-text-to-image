@@ -59,6 +59,7 @@ Below is the [sample codes](demo/dcgan_generate.py) on how to load the trained D
 
 ```python
 from keras_text_to_image.library.dcgan import DCGan
+from keras_text_to_image.library.utility.image_utils import combine_images
 from keras_text_to_image.library.utility.img_cap_loader import load_img_cap
 import numpy as np
 from random import shuffle
@@ -88,10 +89,13 @@ def main():
         image = image_label_pair[0]
         text = image_label_pair[1]
 
-        image.save('./data/outputs/' + DCGan.model_name + '-generated-' + str(i) + '-0.png')
+        generated_images = [image]
         for j in range(3):
             generated_image = gan.generate_image_from_text(text)
-            generated_image.save('./data/outputs/' + DCGan.model_name + '-generated-' + str(i) + '-' + str(j) + '.png')
+            generated_images.append(generated_image)
+        generated_images = np.array(generated_images)
+        combined_image = combine_images(generated_images)
+        combined_image.save('./data/outputs/' + DCGan.model_name + '-generated-' + str(i) + '.png')
 
 
 if __name__ == '__main__':
