@@ -34,8 +34,8 @@ def generator_model(random_input_dim=None, text_input_dim=None, img_width=None, 
 
     random_input = Input(shape=(random_input_dim, ))
     text_input = Input(shape=(text_input_dim, ))
-    random_dense = Dense(output_dim=1024, input_dim=random_input_dim)(random_input)
-    text_dense = Dense(output_dim=1024, input_dim=text_input_dim)(text_input)
+    random_dense = Dense(1024)(random_input)
+    text_dense = Dense(1024)(text_input)
 
     merged = concatenate([random_dense, text_dense])
     layer = Activation('tanh')(merged)
@@ -57,7 +57,7 @@ def generator_model(random_input_dim=None, text_input_dim=None, img_width=None, 
 
     print(model.summary())
 
-    return output
+    return model
 
 
 def discriminator_model(img_width=None, img_height=None, img_channels=None, text_input_dim=None):
