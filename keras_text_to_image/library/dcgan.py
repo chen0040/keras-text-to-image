@@ -13,106 +13,6 @@ import os
 from keras_text_to_image.library.utility.glove_loader import GloveModel
 
 
-def generator_model(random_input_dim=None, text_input_dim=None, img_width=None, img_height=None, img_channels=None):
-    if random_input_dim is None:
-        random_input_dim = 100
-
-    if text_input_dim is None:
-        text_input_dim = 100
-
-    if img_width is None:
-        img_width = 7
-
-    if img_height is None:
-        img_height = 7
-
-    if img_channels is None:
-        img_channels = 1
-
-    init_img_width = img_width // 4
-    init_img_height = img_height // 4
-
-    random_input = Input(shape=(random_input_dim, ))
-    text_input = Input(shape=(text_input_dim, ))
-    random_dense = Dense(1024)(random_input)
-    text_dense = Dense(1024)(text_input)
-
-    merged = concatenate([random_dense, text_dense])
-    layer = Activation('tanh')(merged)
-
-    layer = Dense(128 * init_img_width * init_img_height)(layer)
-    layer = BatchNormalization()(layer)
-    layer = Activation('tanh')(layer)
-    layer = Reshape((init_img_width, init_img_height, 128), input_shape=(128 * init_img_width * init_img_height,))(layer)
-    layer = UpSampling2D(size=(2, 2))(layer)
-    layer = Conv2D(64, kernel_size=5, padding='same')(layer)
-    layer = Activation('tanh')(layer)
-    layer = UpSampling2D(size=(2, 2))(layer)
-    layer = Conv2D(img_channels, kernel_size=5, padding='same')(layer)
-    output = Activation('tanh')(layer)
-
-    model = Model([random_input, text_input], output)
-
-    model.compile(loss='mean_squared_error', optimizer="SGD")
-
-    print(model.summary())
-
-    return model
-
-
-def discriminator_model(img_width=None, img_height=None, img_channels=None, text_input_dim=None):
-    if img_width is None:
-        img_width = 28
-
-    if img_height is None:
-        img_height = 28
-
-    if img_channels is None:
-        img_channels = 1
-
-    if text_input_dim is None:
-        text_input_dim = 100
-
-    text_input = Input(shape=(text_input_dim,))
-    text_model = Dense(1024)(text_input)
-
-    img_input = Input(shape=(img_width, img_height, img_channels))
-    img_model = Conv2D(64, kernel_size=(5, 5), padding='same', input_shape=(img_width, img_height, img_channels))(img_input)
-    img_model = Activation('tanh')(img_model)
-    img_model = MaxPooling2D(pool_size=(2, 2))(img_model)
-    img_model = Conv2D(128, kernel_size=5)(img_model)
-    img_model = Activation('tanh')(img_model)
-    img_model = MaxPooling2D(pool_size=(2, 2))(img_model)
-    img_model = Flatten()(img_model)
-    img_model = Dense(1024)(img_model)
-
-    merged = concatenate([img_model, text_model])
-
-    layer = Activation('tanh')(merged)
-    layer = Dense(1)(layer)
-    output = Activation('sigmoid')(layer)
-
-    model = Model([img_input, text_input], output)
-
-    d_optim = SGD(lr=0.0005, momentum=0.9, nesterov=True)
-    model.compile(loss='binary_crossentropy', optimizer=d_optim)
-    print(model.summary())
-    return model
-
-
-def generator_containing_discriminator(generator, discriminator):
-    model = Sequential()
-    model.add(generator)
-    discriminator.trainable = False
-    model.add(discriminator)
-    g_optim = SGD(lr=0.0005, momentum=0.9, nesterov=True)
-    model.compile(
-        loss='binary_crossentropy', optimizer=g_optim)
-
-    print(model.summary())
-    return model
-
-
 class DCGan(object):
     model_name = 'dc-gan'
 
@@ -139,9 +39,71 @@ class DCGan(object):
         return os.path.join(model_dir_path, DCGan.model_name + '-' + model_type + '-weights.h5')
 
     def create_model(self):
-        self.generator = generator_model(self.random_input_dim, self.img_width, self.img_height, self.img_channels)
-        self.discriminator = discriminator_model(self.img_width, self.img_height, self.img_channels)
-        self.model = generator_containing_discriminator(self.generator, self.discriminator)
+        init_img_width = self.img_width // 4
+        init_img_height = self.img_height // 4
+
+        random_input = Input(shape=(self.random_input_dim,))
+        text_input1 = Input(shape=(self.text_input_dim,))
+        random_dense = Dense(1024)(random_input)
+        text_model1 = Dense(1024)(text_input1)
+
+        merged = concatenate([random_dense, text_model1])
+        generator_layer = Activation('tanh')(merged)
+
+        generator_layer = Dense(128 * init_img_width * init_img_height)(generator_layer)
+        generator_layer = BatchNormalization()(generator_layer)
+        generator_layer = Activation('tanh')(generator_layer)
+        generator_layer = Reshape((init_img_width, init_img_height, 128),
+                                  input_shape=(128 * init_img_width * init_img_height,))(generator_layer)
+        generator_layer = UpSampling2D(size=(2, 2))(generator_layer)
+        generator_layer = Conv2D(64, kernel_size=5, padding='same')(generator_layer)
+        generator_layer = Activation('tanh')(generator_layer)
+        generator_layer = UpSampling2D(size=(2, 2))(generator_layer)
+        generator_layer = Conv2D(self.img_channels, kernel_size=5, padding='same')(generator_layer)
+        generator_output = Activation('tanh')(generator_layer)
+
+        self.generator = Model([random_input, text_input1], generator_output)
+
+        self.generator.compile(loss='mean_squared_error', optimizer="SGD")
+
+        print('generator: ', self.generator.summary())
+
+        text_input2 = Input(shape=(self.text_input_dim,))
+        text_model2 = Dense(1024)(text_input2)
+
+        img_input2 = Input(shape=(self.img_width, self.img_height, self.img_channels))
+        img_model2 = Conv2D(64, kernel_size=(5, 5), padding='same')(
+            img_input2)
+        img_model2 = Activation('tanh')(img_model2)
+        img_model2 = MaxPooling2D(pool_size=(2, 2))(img_model2)
+        img_model2 = Conv2D(128, kernel_size=5)(img_model2)
+        img_model2 = Activation('tanh')(img_model2)
+        img_model2 = MaxPooling2D(pool_size=(2, 2))(img_model2)
+        img_model2 = Flatten()(img_model2)
+        img_model2 = Dense(1024)(img_model2)
+
+        merged = concatenate([img_model2, text_model2])
+
+        layer = Activation('tanh')(merged)
+        layer = Dense(1)(layer)
+        discriminator_output = Activation('sigmoid')(layer)
+
+        self.discriminator = Model([img_input2, text_input2], discriminator_output)
+
+        d_optim = SGD(lr=0.0005, momentum=0.9, nesterov=True)
+        self.discriminator.compile(loss='binary_crossentropy', optimizer=d_optim)
+
+        print('discriminator: ', self.discriminator.summary())
+
+        model_output = self.discriminator([self.generator.output, text_input1])
+
+        self.model = Model([random_input, text_input1], model_output)
+        self.discriminator.trainable = False
+
+        g_optim = SGD(lr=0.0005, momentum=0.9, nesterov=True)
+        self.model.compile(loss='binary_crossentropy', optimizer=g_optim)
+
+        print('generator-discriminator: ', self.model.summary())
 
     def load_model(self, model_dir_path):
         config_file_path = DCGan.get_config_file_path(model_dir_path)
@@ -156,7 +118,8 @@ class DCGan(object):
         self.generator.load_weights(DCGan.get_weight_file_path(model_dir_path, 'generator'))
         self.discriminator.load_weights(DCGan.get_weight_file_path(model_dir_path, 'discriminator'))
 
-    def fit(self, model_dir_path, image_label_pairs, epochs=None, batch_size=None, snapshot_dir_path=None, snapshot_interval=None):
+    def fit(self, model_dir_path, image_label_pairs, epochs=None, batch_size=None, snapshot_dir_path=None,
+            snapshot_interval=None):
         if epochs is None:
             epochs = 100
 

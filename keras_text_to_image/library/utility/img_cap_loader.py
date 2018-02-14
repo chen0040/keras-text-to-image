@@ -1,7 +1,10 @@
 import os
+import numpy as np
+from keras.preprocessing.image import img_to_array, load_img
 
 
-def load_img_cap(img_dir_path, txt_dir_path):
+def load_img_cap(img_dir_path, txt_dir_path, img_width, img_height):
+
     images = dict()
     texts = dict()
     for f in os.listdir(img_dir_path):
@@ -19,6 +22,8 @@ def load_img_cap(img_dir_path, txt_dir_path):
     for name, img_path in images.items():
         if name in texts:
             text = texts[name]
-            result.append([img_path, text])
+            image = img_to_array(load_img(img_path, target_size=(img_width, img_height)))
+            image = (image.astype(np.float32) / 255) * 2 - 1
+            result.append([image, text])
 
-    return result
+    return np.array(result)

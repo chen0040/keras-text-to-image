@@ -12,13 +12,14 @@ def main():
     img_dir_path = './data/pokemon/img'
     txt_dir_path = './data/pokemon/txt'
     model_dir_path = './models'
-    image_label_pairs = load_img_cap(img_dir_path, txt_dir_path)
-
-    shuffle(image_label_pairs)
 
     img_width = 32
     img_height = 32
     img_channels = 3
+
+    image_label_pairs = load_img_cap(img_dir_path, txt_dir_path, img_width=img_width, img_height=img_height)
+
+    shuffle(image_label_pairs)
 
     gan = DCGan()
     gan.img_width = img_width
