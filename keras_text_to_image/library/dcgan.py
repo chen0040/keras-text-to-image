@@ -143,6 +143,7 @@ class DCGan(object):
 
         np.save(config_file_path, self.config)
         noise = np.zeros((batch_size, self.random_input_dim))
+        encoded_text_array = np.zeros((batch_size, self.text_input_dim))
 
         self.create_model()
 
@@ -153,53 +154,39 @@ class DCGan(object):
             for batch_index in range(batch_count):
                 # Step 1: train the discriminator
 
-                # initialize random input
-                for i in range(batch_size):
-                    noise[i, :] = np.random.uniform(-1, 1, self.random_input_dim)
-
                 image_label_pair_batch = image_label_pairs[batch_index * batch_size:(batch_index + 1) * batch_size]
 
+                image_batch = []
+                for index in range(batch_size):
+                    image_label_pair = image_label_pair_batch[index]
+                    img = image_label_pair[0]
+                    text = image_label_pair[1]
+                    image_batch.append(img)
+                    encoded_text_array[index, :] = self.glove_model.encode_doc(text)
+                    noise[index, :] = np.random.uniform(-1, 1, self.random_input_dim)
+
+                image_batch = np.array(image_batch)
+
                 # image_batch = np.transpose(image_batch, (0, 2, 3, 1))
-                generated_images = self.generator.predict(noise, verbose=0)
+                generated_images = self.generator.predict([noise, encoded_text_array], verbose=0)
 
                 if (epoch * batch_size + batch_index) % snapshot_interval == 0 and snapshot_dir_path is not None:
                     self.save_snapshots(generated_images, snapshot_dir_path=snapshot_dir_path,
                                         epoch=epoch, batch_index=batch_index)
 
-                correct_image_label_pair_batch = []
-                generated_image_label_pair_batch = []
-                for index in range(batch_size):
-                    image_label_pair = image_label_pair_batch[index]
-                    generated_image = generated_images[index]
-                    img = image_label_pair[0]
-                    text = image_label_pair[1]
-                    encoded_text = self.glove_model.encode_doc(text)
-                    generated_image_label_pair_batch.append([generated_image, encoded_text])
-                    correct_image_label_pair_batch.append([img, encoded_text])
-
-                correct_image_label_pair_batch = np.array(correct_image_label_pair_batch)
-                generated_image_label_pair_batch = np.array(generated_image_label_pair_batch)
-
-                X = np.concatenate((correct_image_label_pair_batch, generated_image_label_pair_batch))
-                Y = np.array([1] * batch_size + [0] * batch_size)
-
-                print('batch shape: ', X.shape)
+                image_batch = np.concatenate((image_batch, generated_images))
+                text_batch = np.concatenate((encoded_text_array, encoded_text_array))
 
                 self.discriminator.trainable = True
-                d_loss = self.discriminator.train_on_batch(X, Y)
+                d_loss = self.discriminator.train_on_batch([image_batch, text_batch],
+                                                           np.array([1] * batch_size + [0] * batch_size))
                 print("Epoch %d batch %d d_loss : %f" % (epoch, batch_index, d_loss))
 
                 # Step 2: train the generator
-                noise_image_label_pair_batch = []
                 for index in range(batch_size):
-                    image_label_pair = image_label_pair_batch[index]
-                    text = image_label_pair[1]
-                    encoded_text = self.glove_model.encode_doc(text)
                     noise[index, :] = np.random.uniform(-1, 1, self.random_input_dim)
-                    noise_image_label_pair_batch.append([noise, encoded_text])
-                noise_image_label_pair_batch = np.array(noise_image_label_pair_batch)
                 self.discriminator.trainable = False
-                g_loss = self.model.train_on_batch(noise_image_label_pair_batch, np.array([1] * batch_size))
+                g_loss = self.model.train_on_batch([noise, encoded_text_array], np.array([1] * batch_size))
 
                 print("Epoch %d batch %d g_loss : %f" % (epoch, batch_index, g_loss))
                 if (epoch * batch_size + batch_index) % 10 == 9:
