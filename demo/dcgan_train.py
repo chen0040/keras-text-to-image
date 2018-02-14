@@ -11,7 +11,7 @@ def main():
 
     img_dir_path = './data/pokemon/img'
     txt_dir_path = './data/pokemon/txt'
-    model_dir_path = './models/pokemon'
+    model_dir_path = './models'
     image_label_pairs = load_img_cap(img_dir_path, txt_dir_path)
 
     shuffle(image_label_pairs)

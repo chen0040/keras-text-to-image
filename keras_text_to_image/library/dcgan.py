@@ -55,7 +55,7 @@ def generator_model(random_input_dim=None, text_input_dim=None, img_width=None, 
 
     model.compile(loss='mean_squared_error', optimizer="SGD")
 
-    print(output.summary())
+    print(model.summary())
 
     return output
 
