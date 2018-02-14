@@ -143,7 +143,7 @@ class DCGan(object):
 
         np.save(config_file_path, self.config)
         noise = np.zeros((batch_size, self.random_input_dim))
-        encoded_text_array = np.zeros((batch_size, self.text_input_dim))
+        text_batch = np.zeros((batch_size, self.text_input_dim))
 
         self.create_model()
 
@@ -162,23 +162,21 @@ class DCGan(object):
                     img = image_label_pair[0]
                     text = image_label_pair[1]
                     image_batch.append(img)
-                    encoded_text_array[index, :] = self.glove_model.encode_doc(text)
+                    text_batch[index, :] = self.glove_model.encode_doc(text, self.text_input_dim)
                     noise[index, :] = np.random.uniform(-1, 1, self.random_input_dim)
 
                 image_batch = np.array(image_batch)
 
                 # image_batch = np.transpose(image_batch, (0, 2, 3, 1))
-                generated_images = self.generator.predict([noise, encoded_text_array], verbose=0)
+                generated_images = self.generator.predict([noise, text_batch], verbose=0)
 
                 if (epoch * batch_size + batch_index) % snapshot_interval == 0 and snapshot_dir_path is not None:
                     self.save_snapshots(generated_images, snapshot_dir_path=snapshot_dir_path,
                                         epoch=epoch, batch_index=batch_index)
 
-                image_batch = np.concatenate((image_batch, generated_images))
-                text_batch = np.concatenate((encoded_text_array, encoded_text_array))
-
                 self.discriminator.trainable = True
-                d_loss = self.discriminator.train_on_batch([image_batch, text_batch],
+                d_loss = self.discriminator.train_on_batch([np.concatenate((image_batch, generated_images)),
+                                                            np.concatenate((text_batch, text_batch))],
                                                            np.array([1] * batch_size + [0] * batch_size))
                 print("Epoch %d batch %d d_loss : %f" % (epoch, batch_index, d_loss))
 
@@ -186,7 +184,7 @@ class DCGan(object):
                 for index in range(batch_size):
                     noise[index, :] = np.random.uniform(-1, 1, self.random_input_dim)
                 self.discriminator.trainable = False
-                g_loss = self.model.train_on_batch([noise, encoded_text_array], np.array([1] * batch_size))
+                g_loss = self.model.train_on_batch([noise, text_batch], np.array([1] * batch_size))
 
                 print("Epoch %d batch %d g_loss : %f" % (epoch, batch_index, g_loss))
                 if (epoch * batch_size + batch_index) % 10 == 9:
@@ -196,10 +194,12 @@ class DCGan(object):
         self.generator.save_weights(DCGan.get_weight_file_path(model_dir_path, 'generator'), True)
         self.discriminator.save_weights(DCGan.get_weight_file_path(model_dir_path, 'discriminator'), True)
 
-    def generate_image(self):
+    def generate_image_from_text(self, text):
         noise = np.zeros(shape=(1, self.random_input_dim))
+        encoded_text = np.zeros(shape=(1, self.text_input_dim))
+        encoded_text[0, :] = self.glove_model.encode_doc(text, self.text_input_dim)
         noise[0, :] = np.random.uniform(-1, 1, self.random_input_dim)
-        generated_images = self.generator.predict(noise, verbose=0)
+        generated_images = self.generator.predict([noise, encoded_text], verbose=0)
         generated_image = generated_images[0]
         generated_image = generated_image * 127.5 + 127.5
         return Image.fromarray(generated_image.astype(np.uint8))
