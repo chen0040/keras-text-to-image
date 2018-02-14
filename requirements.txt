@@ -1,0 +1,10 @@
+scikit-learn
+keras
+tensorflow-gpu
+pandas
+numpy
+scipy
+h5py
+matplotlib
+pillow
+gensim

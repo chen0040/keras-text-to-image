@@ -6,6 +6,10 @@ __pycache__/
 # C extensions
 *.so
 
+.idea/
+*.iml
+target/
+
 # Distribution / packaging
 .Python
 env/
