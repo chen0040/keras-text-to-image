@@ -4,7 +4,7 @@ from keras.layers.core import Activation, Flatten
 from keras.layers.normalization import BatchNormalization
 from keras.layers.convolutional import UpSampling2D, Conv2D, MaxPooling2D
 from keras.optimizers import SGD
-from keras_text_to_image.library.utility.image_utils import combine_images
+from keras_text_to_image.library.utility.image_utils import combine_normalized_images, img_from_normalized_img
 from keras import backend as K
 import numpy as np
 from PIL import Image
@@ -115,6 +115,7 @@ class DCGan(object):
         self.text_input_dim = self.config['text_input_dim']
         self.glove_source_dir_path = self.config['glove_source_dir_path']
         self.create_model()
+        self.glove_model.load(self.glove_source_dir_path, embedding_dim=self.text_input_dim)
         self.generator.load_weights(DCGan.get_weight_file_path(model_dir_path, 'generator'))
         self.discriminator.load_weights(DCGan.get_weight_file_path(model_dir_path, 'discriminator'))
 
@@ -159,9 +160,9 @@ class DCGan(object):
                 image_batch = []
                 for index in range(batch_size):
                     image_label_pair = image_label_pair_batch[index]
-                    img = image_label_pair[0]
+                    normalized_img = image_label_pair[0]
                     text = image_label_pair[1]
-                    image_batch.append(img)
+                    image_batch.append(normalized_img)
                     text_batch[index, :] = self.glove_model.encode_doc(text, self.text_input_dim)
                     noise[index, :] = np.random.uniform(-1, 1, self.random_input_dim)
 
@@ -197,7 +198,7 @@ class DCGan(object):
     def generate_image_from_text(self, text):
         noise = np.zeros(shape=(1, self.random_input_dim))
         encoded_text = np.zeros(shape=(1, self.text_input_dim))
-        encoded_text[0, :] = self.glove_model.encode_doc(text, self.text_input_dim)
+        encoded_text[0, :] = self.glove_model.encode_doc(text)
         noise[0, :] = np.random.uniform(-1, 1, self.random_input_dim)
         generated_images = self.generator.predict([noise, encoded_text], verbose=0)
         generated_image = generated_images[0]
@@ -205,7 +206,6 @@ class DCGan(object):
         return Image.fromarray(generated_image.astype(np.uint8))
 
     def save_snapshots(self, generated_images, snapshot_dir_path, epoch, batch_index):
-        image = combine_images(generated_images)
-        image = image * 127.5 + 127.5
-        Image.fromarray(image.astype(np.uint8)).save(
+        image = combine_normalized_images(generated_images)
+        img_from_normalized_img(image).save(
             os.path.join(snapshot_dir_path, DCGan.model_name + '-' + str(epoch) + "-" + str(batch_index) + ".png"))

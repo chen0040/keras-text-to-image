@@ -3,7 +3,7 @@ import numpy as np
 from keras.preprocessing.image import img_to_array, load_img
 
 
-def load_img_cap(img_dir_path, txt_dir_path, img_width, img_height):
+def load_normalized_img_and_its_text(img_dir_path, txt_dir_path, img_width, img_height):
 
     images = dict()
     texts = dict()

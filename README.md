@@ -11,7 +11,7 @@ Below is the [sample codes](demo/dcgan_train.py) to train the DCGan on a set of 
 
 ```python
 from keras_text_to_image.library.dcgan import DCGan
-from keras_text_to_image.library.utility.img_cap_loader import load_img_cap
+from keras_text_to_image.library.utility.img_cap_loader import load_normalized_img_and_its_text
 import numpy as np
 from random import shuffle
 
@@ -29,7 +29,7 @@ def main():
     img_height = 32
     img_channels = 3
 
-    image_label_pairs = load_img_cap(img_dir_path, txt_dir_path, img_width=img_width, img_height=img_height)
+    image_label_pairs = load_normalized_img_and_its_text(img_dir_path, txt_dir_path, img_width=img_width, img_height=img_height)
 
     shuffle(image_label_pairs)
 
@@ -43,7 +43,7 @@ def main():
     batch_size = 16
     epochs = 1000
     gan.fit(model_dir_path=model_dir_path, image_label_pairs=image_label_pairs,
-            snapshot_dir_path='./data/outputs',
+            snapshot_dir_path='./data/snapshots',
             snapshot_interval=100,
             batch_size=batch_size,
             epochs=epochs)
@@ -59,8 +59,8 @@ Below is the [sample codes](demo/dcgan_generate.py) on how to load the trained D
 
 ```python
 from keras_text_to_image.library.dcgan import DCGan
-from keras_text_to_image.library.utility.image_utils import combine_images
-from keras_text_to_image.library.utility.img_cap_loader import load_img_cap
+from keras_text_to_image.library.utility.image_utils import img_from_normalized_img
+from keras_text_to_image.library.utility.img_cap_loader import load_normalized_img_and_its_text
 import numpy as np
 from random import shuffle
 
@@ -77,7 +77,7 @@ def main():
     img_width = 32
     img_height = 32
 
-    image_label_pairs = load_img_cap(img_dir_path, txt_dir_path, img_width=img_width, img_height=img_height)
+    image_label_pairs = load_normalized_img_and_its_text(img_dir_path, txt_dir_path, img_width=img_width, img_height=img_height)
 
     shuffle(image_label_pairs)
 
@@ -86,20 +86,19 @@ def main():
 
     for i in range(3):
         image_label_pair = image_label_pairs[i]
-        image = image_label_pair[0]
+        normalized_image = image_label_pair[0]
         text = image_label_pair[1]
 
-        generated_images = [image]
+        image = img_from_normalized_img(normalized_image)
+        image.save('./data/outputs/' + DCGan.model_name + '-generated-' + str(i) + '-0.png')
         for j in range(3):
             generated_image = gan.generate_image_from_text(text)
-            generated_images.append(generated_image)
-        generated_images = np.array(generated_images)
-        combined_image = combine_images(generated_images)
-        combined_image.save('./data/outputs/' + DCGan.model_name + '-generated-' + str(i) + '.png')
+            generated_image.save('./data/outputs/' + DCGan.model_name + '-generated-' + str(i) + '-' + str(j) + '.png')
 
 
 if __name__ == '__main__':
     main()
+
 ```
 
 # Configure to run on GPU on Windows
