@@ -45,9 +45,9 @@ class DCGan(object):
         random_input = Input(shape=(self.random_input_dim,))
         text_input1 = Input(shape=(self.text_input_dim,))
         random_dense = Dense(1024)(random_input)
-        text_model1 = Dense(1024)(text_input1)
+        text_layer1 = Dense(1024)(text_input1)
 
-        merged = concatenate([random_dense, text_model1])
+        merged = concatenate([random_dense, text_layer1])
         generator_layer = Activation('tanh')(merged)
 
         generator_layer = Dense(128 * init_img_width * init_img_height)(generator_layer)
@@ -69,24 +69,24 @@ class DCGan(object):
         print('generator: ', self.generator.summary())
 
         text_input2 = Input(shape=(self.text_input_dim,))
-        text_model2 = Dense(1024)(text_input2)
+        text_layer2 = Dense(1024)(text_input2)
 
         img_input2 = Input(shape=(self.img_width, self.img_height, self.img_channels))
-        img_model2 = Conv2D(64, kernel_size=(5, 5), padding='same')(
+        img_layer2 = Conv2D(64, kernel_size=(5, 5), padding='same')(
             img_input2)
-        img_model2 = Activation('tanh')(img_model2)
-        img_model2 = MaxPooling2D(pool_size=(2, 2))(img_model2)
-        img_model2 = Conv2D(128, kernel_size=5)(img_model2)
-        img_model2 = Activation('tanh')(img_model2)
-        img_model2 = MaxPooling2D(pool_size=(2, 2))(img_model2)
-        img_model2 = Flatten()(img_model2)
-        img_model2 = Dense(1024)(img_model2)
+        img_layer2 = Activation('tanh')(img_layer2)
+        img_layer2 = MaxPooling2D(pool_size=(2, 2))(img_layer2)
+        img_layer2 = Conv2D(128, kernel_size=5)(img_layer2)
+        img_layer2 = Activation('tanh')(img_layer2)
+        img_layer2 = MaxPooling2D(pool_size=(2, 2))(img_layer2)
+        img_layer2 = Flatten()(img_layer2)
+        img_layer2 = Dense(1024)(img_layer2)
 
-        merged = concatenate([img_model2, text_model2])
+        merged = concatenate([img_layer2, text_layer2])
 
-        layer = Activation('tanh')(merged)
-        layer = Dense(1)(layer)
-        discriminator_output = Activation('sigmoid')(layer)
+        discriminator_layer = Activation('tanh')(merged)
+        discriminator_layer = Dense(1)(discriminator_layer)
+        discriminator_output = Activation('sigmoid')(discriminator_layer)
 
         self.discriminator = Model([img_input2, text_input2], discriminator_output)
 
