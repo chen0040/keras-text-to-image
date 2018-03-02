@@ -2,6 +2,13 @@
 
 Translate text to image in Keras using GAN and Word2Vec as well as recurrent neural networks
 
+The following models are implemented in [keras_text_to_image/library]
+
+* [dcgan.py](keras_text_to_image/library/dcgan.py): this version has a very noisy input with text input (half of the 
+input is pure noise while the other half is generated from glove embedding of the input text)
+* [dcgan_v2.py](keras_text_to_image/library/dcgan_v2.py): this version remove noise as input (the input is just 
+glove embedding of the input text)
+
 
 # Usage
 
