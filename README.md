@@ -8,6 +8,9 @@ The following models are implemented in [keras_text_to_image/library]
 input is pure noise while the other half is generated from glove embedding of the input text)
 * [dcgan_v2.py](keras_text_to_image/library/dcgan_v2.py): this version remove noise as input (the input is just 
 glove embedding of the input text)
+* [dcgan_v3.py](keras_text_to_image/library/dcgan_v3.py): this version add a configurable amount of noise as input 
+together with the glove embedding of the text input
+
 
 
 # Usage
