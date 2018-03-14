@@ -37,6 +37,7 @@ def main():
     current_dir = os.path.dirname(__file__)
     # add the keras_text_to_image module to the system path
     sys.path.append(os.path.join(current_dir, '..'))
+    current_dir = current_dir if current_dir is not '' else '.'
 
     img_dir_path = current_dir + '/data/pokemon/img'
     txt_dir_path = current_dir + '/data/pokemon/txt'
@@ -90,6 +91,7 @@ def main():
 
     current_dir = os.path.dirname(__file__)
     sys.path.append(os.path.join(current_dir, '..'))
+    current_dir = current_dir if current_dir is not '' else '.'
     
     img_dir_path = current_dir + '/data/pokemon/img'
     txt_dir_path = current_dir + '/data/pokemon/txt'
