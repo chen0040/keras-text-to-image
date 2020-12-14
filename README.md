@@ -153,9 +153,12 @@ cd /content/gdrive/MyDrive/Colab/
 ```
 !git clone https://github.com/appspell/keras-text-to-image-illustrations.git
 ```
-* Step 6: Run Python script 
+* Step 6: Train the model
 ```
 !python /content/gdrive/MyDrive/Colab/keras-text-to-image-illustrations/demo/dcgan_v3_train.py
 ```
-
+* Step 7: Generate images
+```
+!python /content/gdrive/MyDrive/Colab/keras-text-to-image-illustrations/demo/dcgan_v3_generate.py
+```
 
