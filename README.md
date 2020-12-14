@@ -135,3 +135,19 @@ if __name__ == '__main__':
 currently CUDA® Toolkit 9.1 is not yet supported by tensorflow, therefore you should download CUDA® Toolkit 9.0)
 * Step 3: Download and unzip the [cuDNN 7.4 for CUDA@ Toolkit 9.0](https://developer.nvidia.com/cudnn) and add the
 bin folder of the unzipped directory to the $PATH of your Windows environment 
+
+# Configure in Google Colab
+* Step 1: Create a new project https://colab.research.google.com/
+* Step 2: Create a new notebook
+* Step 3: Mouny Google Drive
+```
+from google.colab import drive
+drive.mount(‘/content/gdrive’)
+```
+* Step 3: This would prompt a URL with an authentication code. After you insert that authentication code in the provided space, your google drive will be mounted. 
+* Step 4: Open directory in Google Drive which you suppose to use for Colab 
+```cd /content/gdrive/MyDrive/Colab/```
+* Step 5: Clone this repo to Colab dir in Google Drive
+```!git clone https://github.com/appspell/keras-text-to-image-illustrations.git```
+* Step 6: Run Python script 
+```!python /content/gdrive/MyDrive/Colab/keras-text-to-image-illustrations/demo/dcgan_v3_train.py```
