@@ -8,6 +8,7 @@ from keras_text_to_image.library.utility.image_utils import combine_normalized_i
 from keras import backend as K
 import numpy as np
 from PIL import Image
+import keras
 import os
 
 from keras_text_to_image.library.utility.glove_loader import GloveModel
@@ -17,7 +18,7 @@ class DCGanV3(object):
     model_name = 'dc-gan-v3'
 
     def __init__(self):
-        K.set_image_dim_ordering('tf')
+        keras.backend.image_data_format()
         self.generator = None
         self.discriminator = None
         self.model = None
@@ -107,7 +108,7 @@ class DCGanV3(object):
 
     def load_model(self, model_dir_path):
         config_file_path = DCGanV3.get_config_file_path(model_dir_path)
-        self.config = np.load(config_file_path).item()
+        self.config = np.load(file=config_file_path, allow_pickle=True).item()
         self.img_width = self.config['img_width']
         self.img_height = self.config['img_height']
         self.img_channels = self.config['img_channels']
