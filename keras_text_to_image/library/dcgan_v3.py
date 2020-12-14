@@ -108,7 +108,7 @@ class DCGanV3(object):
 
     def load_model(self, model_dir_path):
         config_file_path = DCGanV3.get_config_file_path(model_dir_path)
-        self.config = np.load(config_file_path).item()
+        self.config = np.load(file=config_file_path, allow_pickle=True).item()
         self.img_width = self.config['img_width']
         self.img_height = self.config['img_height']
         self.img_channels = self.config['img_channels']
