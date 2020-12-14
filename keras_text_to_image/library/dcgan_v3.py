@@ -8,6 +8,7 @@ from keras_text_to_image.library.utility.image_utils import combine_normalized_i
 from keras import backend as K
 import numpy as np
 from PIL import Image
+import keras
 import os
 
 from keras_text_to_image.library.utility.glove_loader import GloveModel
@@ -17,7 +18,7 @@ class DCGanV3(object):
     model_name = 'dc-gan-v3'
 
     def __init__(self):
-        K.set_image_dim_ordering('tf')
+        keras.backend.image_data_format()
         self.generator = None
         self.discriminator = None
         self.model = None
