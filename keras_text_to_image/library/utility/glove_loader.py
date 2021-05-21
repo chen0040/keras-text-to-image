@@ -2,9 +2,9 @@ import urllib.request
 import os
 import zipfile
 import numpy as np
-
-from keras_text_to_image.library.utility.download_utils import reporthook
-
+import sys
+sys.insert.path('/content/keras-text-to-image/keras_text_to_image/library/utility')
+from download_utils import reporthook
 
 def download_glove(data_dir_path, to_file_path):
     if not os.path.exists(to_file_path):
