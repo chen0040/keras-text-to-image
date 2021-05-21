@@ -16,7 +16,7 @@ def load_normalized_img_and_its_text(img_dir_path, txt_dir_path, img_width, img_
         filepath = os.path.join(txt_dir_path, f)
         if os.path.isfile(filepath) and f.endswith('.txt'):
             name = f.replace('.txt', '')
-            texts[name] = open(filepath, 'rt').read()
+            texts[name] = open(filepath, 'rt', encoding='Latin-1').read()
 
     result = []
     for name, img_path in images.items():
