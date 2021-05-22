@@ -3,7 +3,7 @@ import os
 import zipfile
 import numpy as np
 import sys
-sys.insert.path('/content/keras-text-to-image/keras_text_to_image/library/utility')
+sys.path.insert(0,'/content/keras-text-to-image/keras_text_to_image/library/utility')
 from download_utils import reporthook
 
 def download_glove(data_dir_path, to_file_path):
